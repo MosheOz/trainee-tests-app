@@ -1,0 +1,149 @@
+<div class="layout">
+    <!-- LEFT: filter + table + paginator + actions -->
+    <div class="left">
+        <div class="topbar">
+            <mat-form-field appearance="outline" class="filter">
+                <mat-label>Filter</mat-label>
+                <input matInput [(ngModel)]="filterText" (input)="applyFilter()"
+                    placeholder="ID:3  |  >70  |  <60  |  name / subject" />
+            </mat-form-field>
+
+            <div class="actions">
+                <button mat-raised-button color="primary" (click)="startAdd()">Add</button>
+                <button mat-raised-button color="warn" (click)="removeSelected()" [disabled]="!selected">Remove</button>
+            </div>
+        </div>
+
+        <table mat-table [dataSource]="pageSlice()" class="mat-elevation-z8 table">
+            <!-- ID -->
+            <ng-container matColumnDef="id">
+                <th mat-header-cell *matHeaderCellDef>ID</th>
+                <td mat-cell *matCellDef="let element" (click)="selectRow(element)"
+                    [class.active]="selected?.id===element.id">
+                    {{ element.id }}
+                </td>
+            </ng-container>
+
+            <!-- Name -->
+            <ng-container matColumnDef="traineeName">
+                <th mat-header-cell *matHeaderCellDef>Name</th>
+                <td mat-cell *matCellDef="let element" (click)="selectRow(element)"
+                    [class.active]="selected?.id===element.id">
+                    {{ element.traineeName }}
+                </td>
+            </ng-container>
+
+            <!-- Subject -->
+            <ng-container matColumnDef="subject">
+                <th mat-header-cell *matHeaderCellDef>Subject</th>
+                <td mat-cell *matCellDef="let element" (click)="selectRow(element)"
+                    [class.active]="selected?.id===element.id">
+                    {{ element.subject }}
+                </td>
+            </ng-container>
+
+            <!-- Grade -->
+            <ng-container matColumnDef="grade">
+                <th mat-header-cell *matHeaderCellDef>Grade</th>
+                <td mat-cell *matCellDef="let element" (click)="selectRow(element)"
+                    [class.active]="selected?.id===element.id">
+                    {{ element.grade }}
+                </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="['id','traineeName','subject','grade']"></tr>
+            <tr mat-row *matRowDef="let row; columns: ['id','traineeName','subject','grade'];"></tr>
+        </table>
+
+        <mat-paginator [length]="filteredResults.length" [pageSize]="pageSize" [pageIndex]="page"
+            [pageSizeOptions]="[5,10,20]" (page)="onPageChange($event)">
+        </mat-paginator>
+    </div>
+
+    <!-- RIGHT: details / edit / add panel -->
+    <div class="right">
+        <!-- VIEW MODE -->
+        <ng-container *ngIf="mode==='view'">
+            <div *ngIf="selected; else emptyState">
+                <h3>Details</h3>
+                <mat-divider></mat-divider>
+
+                <div class="kv"><span>ID</span><span>{{ selected.id }}</span></div>
+                <div class="kv"><span>Name</span><span>{{ selected.traineeName }}</span></div>
+                <div class="kv"><span>Subject</span><span>{{ selected.subject }}</span></div>
+                <div class="kv"><span>Grade</span><span>{{ selected.grade }}</span></div>
+                <div class="kv"><span>Date</span><span>{{ selected.date }}</span></div>
+
+                <div class="panel-actions">
+                    <button mat-stroked-button color="primary" (click)="startEdit()">Edit</button>
+                </div>
+            </div>
+
+            <ng-template #emptyState>
+                <p>Select a row to see details, or click <b>Add</b> to create a new one.</p>
+            </ng-template>
+        </ng-container>
+
+        <!-- EDIT MODE -->
+        <form *ngIf="mode==='edit' && workingCopy" #editForm="ngForm" (ngSubmit)="saveEdit(editForm)" class="form">
+            <h3>Edit Row</h3>
+            <mat-divider></mat-divider>
+
+            <mat-form-field appearance="outline">
+                <mat-label>Name</mat-label>
+                <input matInput [(ngModel)]="workingCopy.traineeName" name="name" required />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+                <mat-label>Subject</mat-label>
+                <input matInput [(ngModel)]="workingCopy.subject" name="subject" required />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+                <mat-label>Grade</mat-label>
+                <input type="number" matInput [(ngModel)]="workingCopy.grade" name="grade" min="0" max="100" required />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+                <mat-label>Date</mat-label>
+                <input type="date" matInput [(ngModel)]="workingCopy.date" name="date" required />
+            </mat-form-field>
+
+            <div class="panel-actions">
+                <button mat-raised-button color="primary" type="submit" [disabled]="!editForm.form.valid">Save</button>
+                <button mat-button type="button" (click)="cancelEdit()">Cancel</button>
+            </div>
+        </form>
+
+        <!-- ADD MODE -->
+        <form *ngIf="mode==='add' && workingCopy" #addForm="ngForm" (ngSubmit)="saveAdd(addForm)" class="form">
+            <h3>Add Trainee</h3>
+            <mat-divider></mat-divider>
+
+            <mat-form-field appearance="outline">
+                <mat-label>Name</mat-label>
+                <input matInput [(ngModel)]="workingCopy.traineeName" name="name" required />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+                <mat-label>Subject</mat-label>
+                <input matInput [(ngModel)]="workingCopy.subject" name="subject" required />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+                <mat-label>Grade</mat-label>
+                <input type="number" matInput [(ngModel)]="workingCopy.grade" name="grade" min="0" max="100" required />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+                <mat-label>Date</mat-label>
+                <input type="date" matInput [(ngModel)]="workingCopy.date" name="date" required />
+            </mat-form-field>
+
+            <div class="panel-actions">
+                <button mat-raised-button color="primary" type="submit" [disabled]="!addForm.form.valid">Create</button>
+                <button mat-button type="button" (click)="cancelAdd()">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>

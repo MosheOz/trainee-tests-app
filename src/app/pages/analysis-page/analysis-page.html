@@ -1,0 +1,60 @@
+<h2>Analysis</h2>
+
+<!-- Filters -->
+<div class="filters">
+    <mat-form-field appearance="outline">
+        <mat-label>IDs (Trainees)</mat-label>
+        <mat-select [(ngModel)]="selectedIds" multiple (selectionChange)="updateCharts()">
+            <mat-option *ngFor="let t of trainees" [value]="t">{{ t }}</mat-option>
+        </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+        <mat-label>Subjects</mat-label>
+        <mat-select [(ngModel)]="selectedSubjects" multiple (selectionChange)="updateCharts()">
+            <mat-option *ngFor="let s of subjects" [value]="s">{{ s }}</mat-option>
+        </mat-select>
+    </mat-form-field>
+</div>
+
+<!-- Two visible chart slots -->
+<div class="chart-layout">
+    <!-- LEFT SLOT -->
+    <div cdkDropList #leftList="cdkDropList" [cdkDropListData]="slotLeft"
+        [cdkDropListConnectedTo]="[rightList, hiddenList]" class="slot" (cdkDropListDropped)="onDrop($event)">
+        <div class="chart-card" [attr.data-chart]="slots.left">
+            <div class="chart-title">{{ chartTitle(slots.left) }}</div>
+            <ng-container [ngSwitch]="slots.left">
+                <canvas *ngSwitchCase="'chart1'" baseChart [data]="chart1" [type]="'bar'"></canvas>
+                <canvas *ngSwitchCase="'chart2'" baseChart [data]="chart2" [type]="'line'"></canvas>
+                <canvas *ngSwitchCase="'chart3'" baseChart [data]="chart3" [type]="'pie'"></canvas>
+            </ng-container>
+        </div>
+    </div>
+
+    <!-- RIGHT SLOT -->
+    <div cdkDropList #rightList="cdkDropList" [cdkDropListData]="slotRight"
+        [cdkDropListConnectedTo]="[leftList, hiddenList]" class="slot" (cdkDropListDropped)="onDrop($event)">
+        <div class="chart-card" [attr.data-chart]="slots.right">
+            <div class="chart-title">{{ chartTitle(slots.right) }}</div>
+            <ng-container [ngSwitch]="slots.right">
+                <canvas *ngSwitchCase="'chart1'" baseChart [data]="chart1" [type]="'bar'"></canvas>
+                <canvas *ngSwitchCase="'chart2'" baseChart [data]="chart2" [type]="'line'"></canvas>
+                <canvas *ngSwitchCase="'chart3'" baseChart [data]="chart3" [type]="'pie'"></canvas>
+            </ng-container>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden chart “button” (drag this into a slot to swap) -->
+<div class="hidden-area">
+    <div class="hidden-label">Bottom hidden chart</div>
+
+    <div cdkDropList #hiddenList="cdkDropList" [cdkDropListData]="slotHidden"
+        [cdkDropListConnectedTo]="[leftList, rightList]" class="hidden-drop" (cdkDropListDropped)="onDrop($event)">
+        <!-- Only the hidden chart "button" is draggable -->
+        <button cdkDrag class="hidden-button" type="button">
+            {{ chartTitle(slots.hidden) }}
+        </button>
+    </div>
+</div>
